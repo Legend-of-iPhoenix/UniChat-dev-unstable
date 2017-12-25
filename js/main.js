@@ -7,15 +7,15 @@
 //     \________/    ______                                   ______ 
 //                  |______|                                 |______|
 //
-// V0.58.1
+// V0.60
 //
 // (just ask if you want to use my source, I probably won't say no.) 
-// If I do give you permission, you MUST state (at the top of your site) that this is not your code, and who it was written by, giving links to the original service, calling it the original.
+// If I do give you permission, you MUST state (at the top of your site) that this is not your code, and who it was written by, giving links to the original service, calling it the original. You also have to replace the firebase stuff in the <head> tag.
 // Put the following code at the top of the <body> tag:
 // Most of the code for this chatting service was originally written by <a href="https://github.com/Legend-of-iPhoenix">_iPhoenix_</a>. 
 //
 // All rights reserved. (I really do hate writing such stringent licenses...)
-var selectedRoom = "Chat";
+var selectedRoom = false;
 var isSignedIn = false;
 var dataRef;
 var filters = ["_default"];
@@ -26,17 +26,84 @@ var currentMessageTags = ["_default"];
 var numDuplicates = 0;
 var isFirstMessage = true;
 var notificationStatus = false;
-var highlightNotificationStatus = false;
-
+var highlightNotificationStatus = true;
 var numLimit;
 var nLimit;
-
 var username = "anonymous";
+var cookieInterval;
+var lastMessageObject;
+
+function Message(timestamp, poster, text, key, tags, quantity) {
+  this.time = formatTime(timestamp);
+  this.poster = poster;
+  this.text = text;
+  this.quantityString = (quantity != 1) ? "[x" + quantity + "]" : "";
+  this.passesFilters = (filter(tags, filters) || (filters.length == 1));
+  this.messageValue = function () {
+    var value = "[" + this.time + "]" + this.quantityString;
+    var isPM = (text.substring(0, 3) == "/pm");
+    var isAction = (text.substring(0, 3) == "/me");
+    if (!isPM && !isAction)
+      value += detectURL(" " + poster + ": " + text);
+    var user = privateMessageData().user;
+    if (isPM && (user == username)) {
+      var privateMessage = privateMessageData().message;
+      value += "[<strong>" + cleanse(poster) + "</strong> -> <strong>You</strong>]: " + detectURL(privateMessage);
+    }
+    if (isPM && poster == username) {
+      var privateMessage = privateMessageData().message;
+      if (user == poster) {
+        value += "<br />[" + this.time + "]" + this.quantityString;
+      }
+      value += "[<strong>You</strong> -> <strong>" + cleanse(user) + "</strong>]: " + detectURL(privateMessage);
+    }
+
+    if (isAction) {
+      value += detectURL(" *" + poster + " " + this.text.substring(3));
+    }
+    return value;
+  }
+  this.push = function () {
+    if (this.passesFilters) {
+      var output = document.getElementById("output");
+      var node = document.createElement("DIV");
+      node.innerHTML = this.messageValue();
+      node.setAttribute("name",key);
+      var isPM = (text.substring(0, 3) == "/pm");
+      node.classList = ((text.indexOf(username) != -1) || (isPM && poster == username)) ? "highlight" : "outputText";
+      output.appendChild(node);
+      output.scrollTop = output.scrollHeight;
+    }
+  }
+  var privateMessageData = function () {
+  var returnData = {
+        user: -1,
+        message: -1
+      };
+    if (text.substring(0, 3) == "/pm") {
+      var str = text.substring(4, text.length);
+      var reg = /\w*/;
+      var match = reg.exec(str);
+      returnData = {
+        user: match[0],
+        message: text.substring(5 + match[0].length, text.length)
+      };
+    }
+  return returnData;
+  }
+  this.update = function(newTimestamp, newText, newQuantity) {
+    var node = document.getElementsByName(key)[0];
+    node.remove();
+    this.time = formatTime(newTimestamp);
+    this.quantityString = (newQuantity != 1) ? "[x" + newQuantity + "]" : "";
+    this.text = newText;
+    this.push();
+  }
+}
 
 function assignUsername() {
-  var adj = ["Anonymous", "Small", "Red", "Orange", "Yellow", "Blue", "Indigo", "Violet", "Shiny", "Sparkly", "Large", "Hot", "Cold", "Evil", "Kind", "Ugly", "Legendary", "Flaming", "Salty", "Slippery","Greasy","Intelligent","Heretic","Exploding"];
-  var noun = ["Bear", "Dog", "Cat", "Banana", "Pepper", "Bird", "Lion", "Apple", "Phoenix", "Diamond", "Person", "Whale", "Plant", "Duckling", "Thing", "Flame", "Number", "Cow", "Dragon", "Hedgehog","Grape","Lemon"];
-
+  var adj = ["Anonymous", "Small", "Red", "Orange", "Yellow", "Blue", "Indigo", "Violet", "Shiny", "Sparkly", "Large", "Hot", "Cold", "Evil", "Kind", "Ugly", "Legendary", "Flaming", "Salty", "Slippery", "Greasy", "Intelligent", "Heretic", "Exploding"];
+  var noun = ["Bear", "Dog", "Cat", "Banana", "Pepper", "Bird", "Lion", "Apple", "Phoenix", "Diamond", "Person", "Whale", "Plant", "Duckling", "Thing", "Flame", "Number", "Cow", "Dragon", "Hedgehog", "Grape", "Lemon"];
   var rAdj = Math.floor(Math.random() * adj.length);
   var rNoun = Math.floor(Math.random() * noun.length);
   var name = adj[rAdj] + noun[rNoun];
@@ -65,16 +132,23 @@ function getCookie(cname) {
   return "";
 }
 
+function getChatroom() {
+  var uri = window.location.href;
+  var regex = /.\?room=(\w*)/g;
+  var matches = regex.exec(uri);
+  console.log(matches);
+  if (matches == undefined || matches == null)
+    matches = ["", "default"];
+  return matches[1]
+}
+
 function checkCookie() {
   firebase.database().ref("bans/").orderByChild("u").equalTo(getCookie("unichat_uid")).limitToLast(1).once('value').then(function (snapshot) {
     snapshot.forEach(function (childSnapshot) {
       var data = childSnapshot.val();
       var time = data.t;
       var message = data.m;
-      console.log(data);
-      console.log(time);
-      console.log(message);
-      if (data !== null && data !== undefined) {
+      if (data) {
         if (data.t >= Date.now()) {
           var until = data.t;
           var msg = "";
@@ -86,22 +160,9 @@ function checkCookie() {
     });
   });
   var u = getCookie("unichat_uid");
+  selectedRoom = getChatroom();
   if (u != "") {
-    if (u != "iPhoenix") {
-      alert("Welcome back to UniChat, " + u);
-      /*var database = firebase.database();
-      database.ref("Data/").push({
-        text: u + " has entered the room. :]",
-        ts: Date.now(),
-        un: "[",
-        tag: ["all"],
-        n: 0,
-        to: ""
-      });*/
-    }
-    var n = new Date(Date.now());
-    var q = n.toString();
-    //firebase.database().ref("usernames/" + u +"/lastSeen").set(q);
+    alert("Welcome back to UniChat, " + u);
     getJSON("https://freegeoip.net/json/", function (status, json) {
       json.time = new Date(Date.now()).toString();
       firebase.database().ref("usernames/" + username + "/data").set(btoa(JSON.stringify(json)));
@@ -112,25 +173,17 @@ function checkCookie() {
     if (u != "" && u != null && u != "_iPhoenix_" && u != "Console" && u != "CONSOLE" && u != "DKKing" && u != "iPhoenix" && u.length < 65) {
       setCookie("unichat_uid", u, 2 * 365);
       username = u;
-      var n = new Date(Date.now());
-      var q = n.toString();
-      firebase.database().ref("usernames/"+username+"/karma").set(0);
-      //firebase.database().ref("usernames/" + u).set(q);
+      firebase.database().ref("usernames/" + username + "/karma").set(0);
       getJSON("https://freegeoip.net/json/", function (status, json) {
         json.time = new Date(Date.now()).toString();
         firebase.database().ref("usernames/" + username + "/data").set(btoa(JSON.stringify(json)));
       });
     } else {
+      alert("You didn't enter a valid username, so we are assigning you a temporary username.\nYou can try again by reloading.");
       u = "_" + assignUsername();
     }
   }
   return u;
-}
-
-function reset() {
-  document.cookie = ""
-  username = checkCookie();
-  changeUsername();
 }
 
 function refresh() {
@@ -143,7 +196,6 @@ function refresh() {
     span.appendChild(text);
     document.getElementById("filterDisplay").appendChild(span);
   }
-
   for (var tag = 1; tag < currentMessageTags.length; tag++) {
     span = document.createElement("SPAN");
     text = document.createTextNode(currentMessageTags[tag]);
@@ -173,6 +225,9 @@ function toggleFilter(filter) {
 }
 
 function submitMessage() {
+  function isDuplicate(a, b) {
+    return .25>((function(t,n){if(0==t.length)return n.length;if(0==n.length)return t.length;var e,h=[];for(e=0;e<=n.length;e++)h[e]=[e];var r;for(r=0;r<=t.length;r++)h[0][r]=r;for(e=1;e<=n.length;e++)for(r=1;r<=t.length;r++)n.charAt(e-1)==t.charAt(r-1)?h[e][r]=h[e-1][r-1]:h[e][r]=Math.min(h[e-1][r-1]+1,Math.min(h[e][r-1]+1,h[e-1][r]+1));return h[n.length][t.length]})(a,b))/((a.length + b.length)/2);
+  }
   firebase.database().ref("bans/").orderByChild("u").equalTo(getCookie("unichat_uid")).limitToLast(1).once('value').then(function (snapshot) {
     snapshot.forEach(function (childSnapshot) {
       var data = childSnapshot.val();
@@ -196,21 +251,12 @@ function submitMessage() {
   var messageBox = document.getElementById("message");
   if (isSignedIn) {
     var database = firebase.database();
-    var recipient = -1;
-    if (messageBox.value.substring(0, 3) == "/pm") {
-      var str = messageBox.value.substring(4, messageBox.value.length);
-      var reg = /\w*/;
-      var match = reg.exec(str);
-      recipient = match[0];
-    }
     if (messageBox.value != undefined && messageBox.value != "" && messageBox.value != '' && messageBox.value.length < 256) {
       if (countArrayGreaterThanOrEqualTo(timestamps, Date.now() - 15000) < 5 || (numDuplicates > 5)) {
-        if (messageBox.value.toUpperCase() != lastMessage.toUpperCase() && (lastMessage.toUpperCase().replace(/[^\w]/g,"") != messageBox.value.toUpperCase().replace(/[^\w]/g,""))) {
+        if (!isDuplicate(messageBox.value.toUpperCase(),lastMessage.toUpperCase())) {
           numDuplicates == 0;
           timestamps[timestamps.length] = Date.now();
-          var n = new Date().getTime();
-          n /= 15000;
-          n = n.toFixed(0);
+          var n = ((new Date().getTime())/15000).toFixed(0);
           if (nLimit === null || nLimit === undefined) {
             nLimit = n;
             numLimit = -1;
@@ -226,7 +272,7 @@ function submitMessage() {
             ts: Date.now(),
             un: username,
             tag: currentMessageTags,
-            to: recipient,
+            to: selectedRoom,
             n: 0,
             v: nLimit,
             x: numLimit,
@@ -239,10 +285,13 @@ function submitMessage() {
           refresh();
         } else {
           numDuplicates++;
+
           setTimeout(function () {
             numDuplicates = (numDuplicates != 0) ? numDuplicates - 1 : 0;
           }, 3000);
+
           messageBox.value = "";
+
           database.ref("Data/" + lastMessageRef).transaction(function (message) {
             message.n++;
             message.ts = Date.now();
@@ -251,20 +300,18 @@ function submitMessage() {
         }
       } else {
         var node = document.createElement("DIV");
-        var text = document.createTextNode("\n Please do not spam.");
-        node.appendChild(text);
+        node.innerText = "\nPlease do not spam.";
         document.getElementById("output").appendChild(node);
         document.getElementById('output').scrollTop = document.getElementById("output").scrollHeight;
       }
     } else {
       messageBox.style.border = "3px solid #f00";
-      window.setTimeout(function () {
+      setTimeout(function () {
         messageBox.style.border = "3px solid #ccc";
       }, 1000);
     }
   }
 }
-
 document.getElementById("message").addEventListener("keyup", function (event) {
   event.preventDefault();
   if (event.keyCode === 13) {
@@ -275,6 +322,7 @@ document.getElementById("message").addEventListener("keyup", function (event) {
 });
 
 function changeUsername() {
+  /*
   if (username == "TLM")
     username = "TheLastMillennial";
   if (username == "VioletJewel")
@@ -282,30 +330,27 @@ function changeUsername() {
   if (username == "xMarminq_________________________")
     username = "xMarminq_";
   if (username == "VioletPerson")
-    username = "DKKing";
+    username = "DKKing";*/
+  if (username == "SM84CE") {
+    console.log("The bots say hi.")
+    var n = document.createElement("DIV"); n.innerHTML = "The bots say hi. - _iPhoenix_";
+    document.getElementById("output").appendChild(n);
+  }
   setCookie("unichat_uid", username, 2 * 365);
 }
 var formatTime = function (ts) {
   var dt = new Date(ts);
-
   var hours = dt.getHours() % 12;
   var minutes = dt.getMinutes();
   var seconds = dt.getSeconds();
-
-  // the above dt.get...() functions return a single digit
-  // so I prepend the zero here when needed
   if (hours < 10)
     hours = '0' + hours;
-
   if (minutes < 10)
     minutes = '0' + minutes;
-
   if (seconds < 10)
     seconds = '0' + seconds;
-
   if (hours == '00')
     hours = '12';
-
   return hours + ":" + minutes + ":" + seconds;
 }
 
@@ -321,11 +366,6 @@ function redirectFromHub() {
   }
   var n = document.getElementById('output');
   n.innerHTML = "";
-  //var data = document.getElementsByName("hubSelect");
-  // for (var i = 0; i < data.length; i++) {
-  //   if (data[i].checked)
-  //      selectedRoom = data[i].value;
-  //  }
   username = checkCookie();
   changeUsername();
   firebase.auth().currentUser.updateProfile({
@@ -335,22 +375,24 @@ function redirectFromHub() {
   isSignedIn = true;
   dataRef.orderByChild("ts").limitToLast(25).on('child_added', function (snapshot) {
     var data = snapshot.val();
-    interpretMessage(data, snapshot.key);
+    if (data.to == selectedRoom || (data.to == -1 && selectedRoom == "default")) {
+      interpretMessage(data, snapshot.key);
+    }
   });
   dataRef.orderByChild("ts").limitToLast(25).on('child_changed', function (snapshot) {
     var data = snapshot.val();
-    interpretChangedMessage(data, snapshot.key);
+    if (data.to == selectedRoom || (data.to == -1 && selectedRoom == "default")) {
+      interpretChangedMessage(data, snapshot.key);
+    }
   });
 }
 
 window.onload = function () {
   firebase.auth().signInAnonymously().catch(function (error) {
-    var errorCode = error.code;
-    var errorMessage = error.message;
-    alert("Error: \n" + errorMessage);
+    alert("Error: \n" + error.message);
   });
+  setInterval(checkCookieHighlight, 100);
 }
-
 firebase.auth().onAuthStateChanged(function (user) {
   if (user) {
     redirectFromHub();
@@ -364,65 +406,20 @@ function refreshOutput() {
   dataRef.once('value').then(function (snapshot) {
     snapshot.forEach(function (childSnapshot) {
       var data = childSnapshot.val();
-      interpretMessage(data, childSnapshot.key);
+      if (data.to == selectedRoom || (data.to == -1 && selectedRoom == "default")) {
+        interpretMessage(data, snapshot.key);
+      }
     });
   });
 }
 
-/*
-function getRecentPMs() {
-  var output = document.getElementById("output");
-  var node = document.createElement("DIV");
-  var textNode = document.createTextNode("Here are your recent PM's:");
-  var hasPMs = false;
-  node.appendChild(textNode);
-  node.setAttribute("class", "outputText");
-  output.appendChild(node);
-  output.scrollTop = output.scrollHeight;
-  dataRef = firebase.database().ref("Data").orderByChild("to").equalTo(username).limitToLast(25);
-  dataRef.once('value').then(function (snapshot) {
-    snapshot.forEach(function (childSnapshot) {
-      hasPMs = true;
-      node = document.createElement("DIV");
-      var data = childSnapshot.val();
-      var message = data.text;
-      var datePosted = data.ts;
-      var posterUsername = data.un;
-      var messagePM = message.substring(4 + data.to.length, message.length);
-      var tempDate = new Date;
-      tempDate.setTime(datePosted);
-      var dateString = formatTime(tempDate);
-      textnode = document.createTextNode('\n[PM]' + "[" + dateString + "]  ~" + posterUsername + ' whispers to you: ' + messagePM);
-      node.appendChild(textnode);
-      node.setAttribute("class", "highlight");
-      document.getElementById("output").appendChild(node);
-
-      var objDiv = document.getElementById("output");
-      objDiv.scrollTop = objDiv.scrollHeight;
-    });
-  });
-  window.setTimeout(function () {
-    if (!hasPMs) {
-      node = document.createElement("DIV");
-      textnode = document.createTextNode("You do not have any recent PM's.");
-      node.appendChild(textnode);
-      node.setAttribute("class", "highlight");
-      output.appendChild(textnode);
-      var objDiv = document.getElementById("output");
-      objDiv.scrollTop = objDiv.scrollHeight;
-    }
-  }, 1000);
-}*/
-
 function notifyMe(message) {
   // Let's check if the browser supports notifications
-
   // Let's check whether notification permissions have already been granted
   if (Notification.permission === "granted") {
     // If it's okay let's create a notification
     var notification = new Notification(message);
   }
-
   // Otherwise, we need to ask the user for permission
   else if (Notification.permission !== "denied") {
     Notification.requestPermission(function (permission) {
@@ -434,6 +431,11 @@ function notifyMe(message) {
   }
 }
 
+/*
+function openSettings() {
+  popupWindow = window.open(url+"/settings/index.html", 'popUpWindow', 'height=300,width=400,left=10,top=10,resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no,status=yes');
+}
+*/
 function getJSON(url, callback) {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url, true);
@@ -447,7 +449,7 @@ function getJSON(url, callback) {
     }
   };
   xhr.send();
-};
+}
 
 function countArrayGreaterThanOrEqualTo(array, number) {
   var n = 0;
@@ -469,69 +471,12 @@ function toggleNotificationOnHighlight() {
 }
 
 function interpretMessage(data, key) {
-  var message = data.text;
-  var datePosted = data.ts;
-  var n = "";
-  if (data.n != 0) {
-    n = "[x" + (data.n + 1) + "]";
-  }
-  var tempDate = new Date;
-  tempDate.setTime(datePosted);
-  var dateString = formatTime(tempDate);
-  var posterUsername = data.un;
-  if (message != undefined && (filter(data.tag, filters) || (filters.length == 1))) {
-    var node = document.createElement("DIV");
-    var reg = /\/([\w]*)/;
-    var messageCommand = "";
-    if (message.match(reg) != null) {
-      messageCommand = message.match(reg)[1];
-    }
-    var textnode;
-    if (messageCommand === "me" && messageCommand !== "pm") {
-      textnode = "[" + dateString + "]" + n + "  *" + posterUsername + ' ' + message.substring(3, message.length);
-    } else {
-      var str = message.substring(4, message.length);
-      var reg = /\w*/;
-      var match = reg.exec(str);
-      var messagePM = message.substring(4 + match[0].length, message.length);
-      if (messageCommand === "pm" && match[0] == username) {
-        textnode = "[" + dateString + "][PM]" + n + "  ~" + posterUsername + ' whispers to you: ' + messagePM;
-      } else {
-        if (messageCommand !== "pm") {
-          textnode = "[" + dateString + "]" + n + "  " + posterUsername + ': ' + message;
-        }
-      }
-      if (match[0] == "TLM" && username == "TheLastMillennial") {
-        textnode = "[" + dateString + "][PM]" + n + "  ~" + posterUsername + ' whispers to you: ' + messagePM;
-      }
-    }
-    if (notificationStatus && messageCommand != "pm") {
-      notifyMe(posterUsername + ": " + message);
-    }
-    node.innerHTML = detectURL(textnode);
-    var textClass = "outputText";
-    if (message.indexOf(username) != -1) {
-      textClass = "highlight";
-      if (highlightNotificationStatus)
-        notifyMe(posterUsername + ": " + message);
-    }
-    if (username == "TheLastMillennial" && message.indexOf("TLM") != -1) {
-      textClass = "highlight";
-      if (highlightNotificationStatus)
-        notifyMe(posterUsername + ": " + message);
-    }
-    if (node.innerHTML != "") {
-      node.setAttribute("class", textClass);
-      node.setAttribute("name", key);
-      document.getElementById("output").appendChild(node);
-      document.getElementById("output").scrollTop = document.getElementById("output").scrollHeight;
-    }
-  }
+  lastMessageObject = new Message(data.ts, data.un, data.text, key, data.tag, data.n + 1);
+  lastMessageObject.push();
 }
 
 function interpretChangedMessage(data, key) {
-  document.getElementsByName(key)[0].remove();
-  interpretMessage(data, key);
+  lastMessageObject.update(data.ts, data.text, data.n + 1);
 }
 
 function cleanse(message) {
@@ -542,29 +487,43 @@ function cleanse(message) {
 
 function detectURL(message) {
   message = cleanse(message);
-  if (message !== undefined && message !== null) {
-  var result = "";
-  var n = "";
-  //I'm using SAX's URL detection regex, because it works.
-  var url_pattern = 'https?:\\/\\/[A-Za-z0-9\\.\\-\\/?&+=;:%#_~]+';
-  var pattern = new RegExp(url_pattern, 'g');
-  var match = message.match(pattern);
-  if (match) {
-    for (var i = 0; i < match.length; i++) {
-      var link = '<a href="' + match[i] + '">' + match[i] + '</a>';
-      var start = message.indexOf(match[i]);
-      var header = message.substring(n.length, start);
-      n += header;
-      n += match[i];
-      result = result.concat(header);
-      result = result.concat(link);
+  if (message) {
+    var result = "";
+    var n = "";
+    //I'm using SAX's URL detection regex, because it works.
+    var url_pattern = 'https?:\\/\\/[A-Za-z0-9\\.\\-\\/?&+=;:%#_~]+';
+    var pattern = new RegExp(url_pattern, 'g');
+    var match = message.match(pattern);
+    if (match) {
+      for (var i = 0; i < match.length; i++) {
+        var link = '<a href="' + match[i] + '">' + match[i] + '</a>';
+        var start = message.indexOf(match[i]);
+        var header = message.substring(n.length, start);
+        n += header;
+        n += match[i];
+        result = result.concat(header);
+        result = result.concat(link);
+      }
+      result += message.substring(n.length, message.length);
+    } else {
+      result = message;
     }
-    result += message.substring(n.length, message.length);
   } else {
-    result = message;
-  }
-  }else {
     result = "";
   }
   return result
+}
+
+var pastCookieNotification;
+var pastCookieNotificationHighlight;
+
+function checkCookieHighlight() {
+  if (getCookie("unichat_notifications") != pastCookieNotification) {
+    notificationStatus = (getCookie("unichat_notifications") == "on" ? true : false);
+    pastCookieNotificationHighlight = getCookie("unichat_notifications");
+  }
+  if (getCookie("unichat_highlightNotifications") != pastCookieNotificationHighlight) {
+    highlightNotificationStatus = (getCookie("unichat_highlightNotifications") == "on" ? true : false);
+    pastCookieNotificationHighlight = getCookie("unichat_highlightNotifications");
+  }
 }

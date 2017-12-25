@@ -2,6 +2,7 @@
 <html>
   <head>
     <title> UniChat Beta </title>
+    <base target="_blank">
     <!-- Google Tag Manager --> 
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','GTM-NJR6RD8');</script> 
     <!-- End Google Tag Manager -->
@@ -19,7 +20,7 @@
       firebase.initializeApp(config);
     </script>-->
     
-<script src="https://www.gstatic.com/firebasejs/4.8.0/firebase.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.8.0/firebase.js"></script>
 <script>
   // Initialize Firebase
   var config = {
@@ -45,6 +46,7 @@
       <input type="button" value="Submit" onclick="submitMessage()">
     </div>
     <br />
+    <!--<input type="button" value="Settings" onclick="openSettings()">-->
     <div class="tags">
       <p> Optionally, you can click on one or more of the tags below to make sure your message reaches your audience! </p>
       <input type="button" value="Programming" onclick="addTag(this)">
@@ -102,10 +104,9 @@
     </div>
     <br />
     <div class="tutorial">
-      <p>My goal:</p>
+      <p>Our Goal:</p>
       <ol>
         <li> Provide a free, friendly, and open experience for users to chat, connect, hang out, and work. </li>
-        <li> Create a bounty of anonymized, secure data that my machine-learning algorithms can learn human behavior from. </li>
       </ol>
     </div>
     <script src="js/main.js"></script>
@@ -122,7 +123,7 @@
         /pm &ltuser> &ltmessage>
         <ul>
           <li> Appears to &ltuser> as: *&ltyour username> whispers to you: &ltmessage></li>
-          <li> Is not seen by <strong>anyone</strong> else. </li>
+          <li> Is not seen by anyone else. </li>
         </ul>
       </li>
     </div>

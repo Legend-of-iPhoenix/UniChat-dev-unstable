@@ -1,70 +1,96 @@
 * {
-  font-family: Lato, sans-serif;
+  font-family: 'Lato', sans-serif;
   color: #aaa;
 }
 
 body {
+  background-color: #2d2d2d;
   color: #0e0;
+}
+
+* {
+  font-family: 'Lato', sans-serif;
+  color: #aaa;
+}
+
+body {
   background-color: #2d2d2d;
 }
 
 a {
-  z-index: 0;
-  position: relative;
-  color: #999;
-  text-decoration: none;
+  color: #aaa;
+  -webkit-text-decoration-color: #ccc; /* Safari */    
+  text-decoration-color: #ccc;
 }
 
-a:before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  width: 100%;
-  height: 2px;
-  bottom: 1px;
-  left: 0;
-  background-color: #d1d1d1;
-  border-radius: 2px;
-  visibility: hidden;
-  -webkit-transform: scaleX(0);
-  transform: scaleX(0);
-  -webkit-transition: all 0.3s ease-in-out 0s;
-  transition: all 0.3s ease-in-out 0s, height 0.3s ease-in-out .3s;
+a:hover {
+  color: #ccc;
+  -webkit-text-decoration-color: #ddd; /* Safari */    
+  text-decoration-color: #ddd;
+}
+
+a:visited {
+  color: #888;
+  -webkit-text-decoration-color: #ccc; /* Safari */    
+  text-decoration-color: #ccc;
+}
+
+a:visited:hover {
+  color: #ccc;
+  -webkit-text-decoration-color: #fff; /* Safari */    
+  text-decoration-color: #fff;
 }
 
 .highlight a {
-  color: #777;
+  color: #aaa;
 }
 
-.highlight a:before {
-  background-color: #1f1f1f;
+.highlight a:hover {
+  color: #bbb;
 }
 
-a:hover:before {
-  visibility: visible;
-  -webkit-transform: scaleX(1.05);
-  transform: scaleX(1.05);
-  height: 17px;
+.highlight a:visited {
+  color: #999;
+}
+
+.highlight a:hover {
+  color: #bbb;
 }
 
 .battlesquid {
   margin-top: 30px;
-  text-shadow: 0 0 10px #fefcc9, -4px -6px 15px #feec85, 11px 1px 20px #ffae34, 7px -14px 25px #ec760c, 8px -17px 30px #cd4606, -10px -20px 20px #973716, 2px -20px 50px #451b0e;
-  color: #FFF;
+  text-shadow: 0px 0px 10px #fefcc9, -4px -6px 15px #feec85, 11px 1px 20px #ffae34, 7px -14px 25px #ec760c, 8px -17px 30px #cd4606, -10px -20px 20px #973716, 2px -20px 50px #451b0e;
+  color: white;
 }
 
 span {
+  padding: 2px 10px;
   border-radius: 2px;
+  margin: 4px;
   color: #000;
   font-size: 16px;
   cursor: pointer;
   text-align: center;
   text-decoration: none;
   background-color: #c4c4c4;
-  border: 1px solid #000;
+  border: 1px solid #000/*#7a95fe*/;
   display: inline-block;
-  margin: 4px;
-  padding: 2px 10px;
+}
+
+ol {
+  width: 33%;
+  color: #fff;
+  background-color: #222;
+  border-radius:5px;
+  box-shadow:0 1px 5px #222 inset,0 1px 0 #666;
+}
+
+ul:.tags {
+  width: 33%;
+  color: #fff;
+  background-color: #222;
+  border-radius:5px;
+  box-shadow:0 1px 5px #222 inset,0 1px 0 #666;
 }
 
 .tutorial {
@@ -74,7 +100,6 @@ span {
 .outputText:nth-child(odd) {
   background-color: #2d2d2d;
 }
-
 .outputText:nth-child(even) {
   background-color: #222;
 }
@@ -88,29 +113,31 @@ span {
   width: 100%;
   height: 50vh;
   overflow-y: scroll;
-  border-radius: 5px;
+  border-radius:5px;
   background-color: #222;
-  box-shadow: 0 1px 5px #222 inset,0 1px 0 #666;
+  box-shadow:0 1px 5px #222 inset,0 1px 0 #666;
 }
 
-input[type=text],input[type=password] {
-  width: 90%;
-  box-sizing: border-box;
-  border: 3px solid #ccc;
-  -webkit-transition: .5s;
-  transition: .5s;
-  outline: none;
-  color: #222;
-  margin: 0 0 20px;
-  padding: 5px;
+input[type=text], input[type=password] {
+    width: 90%;
+    padding: 5px 5px;
+    margin: 0px 0px 20px 0px;
+    box-sizing: border-box;
+    border: 3px solid #ccc;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    outline: none;
+    color: #222;
 }
 
-input[type=text]:focus,input[type=password]:focus {
-  border: 3px solid #454545;
+input[type=text]:focus, input[type=password]:focus {
+    border: 3px solid #454545;
 }
 
-input[type=button], button {
+input[type=button] {
+  padding: 2px 10px;
   border-radius: 5px;
+  margin: 4px;
   color: #000;
   font-size: 16px;
   cursor: pointer;
@@ -119,18 +146,16 @@ input[type=button], button {
   background-color: #c4c4c4;
   border: 1px solid #000;
   display: inline-block;
-  -webkit-transition-duration: .4s;
-  transition-duration: .4s;
-  margin: 4px;
-  padding: 2px 10px;
+  -webkit-transition-duration: 0.4s;
+  transition-duration: 0.4s;
 }
 
 input[value="Submit"] {
   width: auto;
 }
 
-input[type=button]:hover, button:hover {
-  box-shadow: 5px 5px 10px 0 rgba(0,0,0,0.8);
+input[type=button]:hover {
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.8),0 17px 50px 0 rgba(0,0,0,0.7);
 }
 
 h1 {
@@ -141,14 +166,105 @@ h3 {
   color: #aaa;
 }
 
-ol,ul:.tags {
+span {
+  padding: 2px 10px;
+  border-radius: 2px;
+  margin: 4px;
+  color: #000;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  background-color: #c4c4c4;
+  border: 1px solid #000/*#7a95fe*/;
+  display: inline-block;
+}
+
+ol {
   width: 33%;
   color: #fff;
   background-color: #222;
-  border-radius: 5px;
-  box-shadow: 0 1px 5px #222 inset,0 1px 0 #666;
+  border-radius:5px;
+  box-shadow:0 1px 5px #222 inset,0 1px 0 #666;
 }
 
-strong {
+ul:.tags {
+  width: 33%;
+  color: #fff;
+  background-color: #222;
+  border-radius:5px;
+  box-shadow:0 1px 5px #222 inset,0 1px 0 #666;
+}
+
+.tutorial {
+  padding: 7px;
+}
+
+.outputText:nth-child(odd) {
+  background-color: #2d2d2d;
+}
+.outputText:nth-child(even) {
+  background-color: #222;
+}
+
+.highlight {
   color: #000;
+  background-color: #ddd;
+}
+
+#output {
+  width: 100%;
+  height: 50vh;
+  overflow-y: scroll;
+  border-radius:5px;
+  background-color: #222;
+  box-shadow:0 1px 5px #222 inset,0 1px 0 #666;
+}
+
+input[type=text], input[type=password] {
+    width: 90%;
+    padding: 5px 5px;
+    margin: 0px 0px 20px 0px;
+    box-sizing: border-box;
+    border: 3px solid #ccc;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    outline: none;
+    color: #222;
+}
+
+input[type=text]:focus, input[type=password]:focus {
+    border: 3px solid #454545;
+}
+
+input[type=button] {
+  padding: 2px 10px;
+  border-radius: 5px;
+  margin: 4px;
+  color: #000;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  background-color: #c4c4c4;
+  border: 1px solid #000;
+  display: inline-block;
+  -webkit-transition-duration: 0.4s;
+  transition-duration: 0.4s;
+}
+
+input[value="Submit"] {
+  width: auto;
+}
+
+input[type=button]:hover {
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.8),0 17px 30px 0 rgba(0,0,0,0.7);
+}
+
+h1 {
+  color: #ccc;
+}
+
+h3 {
+  color: #aaa;
 }

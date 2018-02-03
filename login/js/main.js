@@ -1,9 +1,6 @@
 var usernameDiv;
 var data;
 window.onload = function () {
-  if (document.cookie.replace(/(?:(?:^|.*;\s*)unichat_uid2\s*\=\s*([^;]*).*$)|^.*$/, "$1") != "") {
-    location.href = "https://legend-of-iphoenix.github.io/UniChat-dev-unstable/?u=" + document.cookie.replace(/(?:(?:^|.*;\s*)unichat_uid2\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-  }
   usernameDiv = document.getElementById("username");
   usernameDiv.oninput = function () {
     var value = usernameDiv.value;

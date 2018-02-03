@@ -31,16 +31,13 @@ function formatTime(ts) {
     hour %= 24;
 
     function format(n, unit) {
-      if (n == 0) {
-        return false;
-      }
       n = Math.floor(n);
-      return n + " " + unit + (n == 1 ? "" : "s") + ", "
+      return n === 0 ? "" : n + " " + unit + (n == 1 ? "" : "s") + ", "
     }
     sec = format(sec, "second");
-    min = format(min, "minute") || "";
-    hour = format(hour, "hour") || "";
-    day = format(day, "day") || "";
+    min = format(min, "minute");
+    hour = format(hour, "hour");
+    day = format(day, "day");
     sec = sec.substring(0, sec.length - 2);
     var result = day + hour + min + "and " + sec + "."
     return result;

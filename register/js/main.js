@@ -2,7 +2,7 @@ var usernameDiv;
 var data;
 window.onload = function () {
   if (document.cookie.replace(/(?:(?:^|.*;\s*)unichat_uid2\s*\=\s*([^;]*).*$)|^.*$/, "$1") != "") {
-    location.href = "https://legend-of-iphoenix.github.io/UniChatDemo/?u="+document.cookie.replace(/(?:(?:^|.*;\s*)unichat_uid2\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    location.href = "https://legend-of-iphoenix.github.io/UniChatDemo/"
   }
   usernameDiv = document.getElementById("username");
   usernameDiv.oninput = function () {
@@ -63,7 +63,7 @@ function submit() {
                 firebase.database().ref("uids/" + uid).set(value).then(function () {
                   firebase.auth().createUserWithEmailAndPassword(uid+"@fake.co",document.getElementById("password").value).then(function() {
                     document.cookie = "unichat_uid2=" + uid + ";expires=" + new Date(Date.now() + 157784760000);
-                    location.href = "https://legend-of-iphoenix.github.io/UniChatDemo/?u="+uid;
+                    location.href = "https://legend-of-iphoenix.github.io/UniChatDemo/"
                   });
                 });
               });

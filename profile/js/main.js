@@ -1,7 +1,9 @@
 //Thanks, guys. It means a lot. - The Development Team
 var closedBetaTesters = ["SM84CE", "TheLastMillennial", "TLM", "Battlesquid", "xMarminq_"];
 
-var helpers = ["LAX18"];
+var bot_contributors = ["SM84CE", "jcgter777", "womp", "123outerme"];
+
+var helpers = ["LAX18","MrDKKing","jcgter777","Drewster30","mets11rap"];
 
 function getMessage(tag) {
   var href = window.location.href;
@@ -14,9 +16,7 @@ window.onload = function () {
   getKarma(decodeURI(getMessage("u")));
 }
 
-function display(data) {
-  var user = data.u;
-  var karma = data.k;
+function display(user, karma) {
   if (user !== "undefined" && user !== "null"  && user) {
     document.getElementById("username").innerText = user;
     document.getElementById("karma").innerText = "Karma: +" + karma;
@@ -46,13 +46,21 @@ function getTitle(username, karma) {
       document.getElementById("username").className = "battlesquid";
       return "Closed Beta Tester";
     }
+    if (username == "SM84CE") {
+      document.getElementById('username').style.color = "#94f3bd";
+      return "Closed Beta Tester";
+    }
     if (helpers.indexOf(username) != -1) {
-      document.getElementById("username").style.textShadow = "#999 0px 0px 100px";
+      document.getElementById("username").className = "glowing";
       return "Contributor"
     }
     if (closedBetaTesters.indexOf(username) != -1) {
       document.getElementById("username").style.textShadow = "#999 0px 0px 100px";
       return "Closed Beta Tester";
+    }
+    if (bot_contributors.indexOf(username) != -1) {
+      document.getElementById("username").style.textShadow = "#999 0px 0px 100px";
+      return "Contributed a bot!";
     }
     if (karma < 10) {
       return "New User";
@@ -73,7 +81,10 @@ function getTitle(username, karma) {
 }
 
 function getKarma(user) {
-  firebase.database().ref("usernames/"+user+"/karma").once("value").then(function(snapshot) {
-      display({u: user, k: snapshot.val()});
+  firebase.database().ref("uids/"+user).once('value').then(function(s) {
+    var k = s.val();
+    firebase.database().ref("users/"+user).once("value").then(function(snapshot) {
+      display(snapshot.val().u, snapshot.val().karma);
+    });
   });
 }

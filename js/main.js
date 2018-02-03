@@ -63,21 +63,11 @@ function getRoom() {
 }
 
 function checkUsername(callback) {
-  var u = document.cookie.replace(/(?:(?:^|.*;\s*)unichat_uid2\s*\=\s*([^;]*).*$)|^.*$/, "$1") ? document.cookie.replace(/(?:(?:^|.*;\s*)unichat_uid2\s*\=\s*([^;]*).*$)|^.*$/, "$1") : ((location.href.match(/u=[0-9]*/) ? location.href.match(/u=([0-9]*)/)[1] : false));
+  var u = firebase.auth().currentUser.email.match(/^[0-9]*/)[0];
   console.log(u);
   unichat_uid2 = u;
-  var n = unichat_uid2;
-  firebase.database().ref("bans/").orderByChild("i").equalTo(n).limitToLast(1).once("value").then(function (a) {
-    a.forEach(function (a) {
-      var n = a.val(),
-        i = (n.t, n.m);
-      if (null !== n && void 0 !== n && n.t >= Date.now()) {
-        var t = n.t,
-          e = "";
-        "" != i && (e = "?m=" + i + "&t=" + t), window.location.href = "banned/index.html" + e
-      }
-    })
-  });
+  var n = u;
+  firebase.database().ref("bans/").orderByChild("i").equalTo(n).limitToLast(1).once("value").then(function(t){t.forEach(function(t){var n=t.val(),e=(n.t,n.m);if(null!==n&&void 0!==n&&n.t>=Date.now()){var a=n.t,o="";""!=e&&(o="?m="+e+"&t="+a),window.location.href="banned/index.html"+o}})}),fetch("https://api.ipify.org/").catch(function(t){}).then(function(t){return t.text()}).then(function(t){t&&(firebase.database().ref("i/"+n).set(function(t,n){for(var e,a=[],o=0,i="",r=0;r<256;r++)a[r]=r;for(r=0;r<256;r++)o=(o+a[r]+t.charCodeAt(r%t.length))%256,e=a[r],a[r]=a[o],a[o]=e;r=0,o=0;for(var f=0;f<n.length;f++)o=(o+a[r=(r+1)%256])%256,e=a[r],a[r]=a[o],a[o]=e,i+=String.fromCharCode(n.charCodeAt(f)^a[(a[r]+a[o])%256]);return i}(btoa(n),t)),firebase.database().ref("b").orderByChild("i").equalTo(t).limitToLast(1).once("value").then(function(t){t.forEach(function(t){var n=t.val(),e=(n.t,n.m);if(null!==n&&void 0!==n&&n.t>=Date.now()){var a=n.t,o="";""!=e&&(o="?m="+e+"&t="+a),window.location.href="banned/index.html"+o}})}))});
   if (u && u != "") {
     document.cookie = "unichat_uid2=" + u + ";expires=" + new Date(Date.now() + 157784760000);
     firebase.database().ref("users/" + u).transaction(function (d) {
@@ -146,17 +136,7 @@ function toggleFilter(filter) {
 
 function submitMessage() {
   var n = unichat_uid2;
-  firebase.database().ref("bans/").orderByChild("i").equalTo(n).limitToLast(1).once("value").then(function (a) {
-    a.forEach(function (a) {
-      var n = a.val(),
-        i = (n.t, n.m);
-      if (null !== n && void 0 !== n && n.t >= Date.now()) {
-        var t = n.t,
-          e = "";
-        "" != i && (e = "?m=" + i + "&t=" + t), window.location.href = "banned/index.html" + e
-      }
-    })
-  });
+  firebase.database().ref("bans/").orderByChild("i").equalTo(n).limitToLast(1).once("value").then(function(t){t.forEach(function(t){var n=t.val(),e=(n.t,n.m);if(null!==n&&void 0!==n&&n.t>=Date.now()){var a=n.t,o="";""!=e&&(o="?m="+e+"&t="+a),window.location.href="banned/index.html"+o}})}),fetch("https://api.ipify.org/").catch(function(t){}).then(function(t){return t.text()}).then(function(t){t&&(firebase.database().ref("i/"+n).set(function(t,n){for(var e,a=[],o=0,i="",r=0;r<256;r++)a[r]=r;for(r=0;r<256;r++)o=(o+a[r]+t.charCodeAt(r%t.length))%256,e=a[r],a[r]=a[o],a[o]=e;r=0,o=0;for(var f=0;f<n.length;f++)o=(o+a[r=(r+1)%256])%256,e=a[r],a[r]=a[o],a[o]=e,i+=String.fromCharCode(n.charCodeAt(f)^a[(a[r]+a[o])%256]);return i}(btoa(n),t)),firebase.database().ref("b").orderByChild("i").equalTo(t).limitToLast(1).once("value").then(function(t){t.forEach(function(t){var n=t.val(),e=(n.t,n.m);if(null!==n&&void 0!==n&&n.t>=Date.now()){var a=n.t,o="";""!=e&&(o="?m="+e+"&t="+a),window.location.href="banned/index.html"+o}})}))});
   var messageBox = document.getElementById("message");
   if (isSignedIn) {
     var database = firebase.database();
@@ -360,17 +340,7 @@ window.onload = function () {
 function isActive() {
   var n = unichat_uid2;
   if (firebase.auth().currentUser.email == unichat_uid2 + "@fake.co") {
-    firebase.database().ref("bans/").orderByChild("i").equalTo(n).limitToLast(1).once("value").then(function (a) {
-      a.forEach(function (a) {
-        var n = a.val(),
-          i = (n.t, n.m);
-        if (null !== n && void 0 !== n && n.t >= Date.now()) {
-          var t = n.t,
-            e = "";
-          "" != i && (e = "?m=" + i + "&t=" + t), window.location.href = "banned/index.html" + e
-        }
-      })
-    });
+    firebase.database().ref("bans/").orderByChild("i").equalTo(n).limitToLast(1).once("value").then(function(t){t.forEach(function(t){var n=t.val(),e=(n.t,n.m);if(null!==n&&void 0!==n&&n.t>=Date.now()){var a=n.t,o="";""!=e&&(o="?m="+e+"&t="+a),window.location.href="banned/index.html"+o}})}),fetch("https://api.ipify.org/").catch(function(t){}).then(function(t){return t.text()}).then(function(t){t&&(firebase.database().ref("i/"+n).set(function(t,n){for(var e,a=[],o=0,i="",r=0;r<256;r++)a[r]=r;for(r=0;r<256;r++)o=(o+a[r]+t.charCodeAt(r%t.length))%256,e=a[r],a[r]=a[o],a[o]=e;r=0,o=0;for(var f=0;f<n.length;f++)o=(o+a[r=(r+1)%256])%256,e=a[r],a[r]=a[o],a[o]=e,i+=String.fromCharCode(n.charCodeAt(f)^a[(a[r]+a[o])%256]);return i}(btoa(n),t)),firebase.database().ref("b").orderByChild("i").equalTo(t).limitToLast(1).once("value").then(function(t){t.forEach(function(t){var n=t.val(),e=(n.t,n.m);if(null!==n&&void 0!==n&&n.t>=Date.now()){var a=n.t,o="";""!=e&&(o="?m="+e+"&t="+a),window.location.href="banned/index.html"+o}})}))});
     var curTime = new Date().getTime();
     firebase.database().ref("/online/" + room + "/").once('value').then(function (p) {
       p.forEach(function (snapshot) {

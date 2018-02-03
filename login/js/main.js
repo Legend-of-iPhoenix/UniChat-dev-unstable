@@ -2,7 +2,7 @@ var usernameDiv;
 var data;
 window.onload = function () {
   if (document.cookie.replace(/(?:(?:^|.*;\s*)unichat_uid2\s*\=\s*([^;]*).*$)|^.*$/, "$1") != "") {
-    location.href = "https://legend-of-iphoenix.github.io/UniChatDemo/?u=" + document.cookie.replace(/(?:(?:^|.*;\s*)unichat_uid2\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    location.href = "https://legend-of-iphoenix.github.io/UniChat-dev-unstable/?u=" + document.cookie.replace(/(?:(?:^|.*;\s*)unichat_uid2\s*\=\s*([^;]*).*$)|^.*$/, "$1");
   }
   usernameDiv = document.getElementById("username");
   usernameDiv.oninput = function () {
@@ -54,7 +54,7 @@ function submit() {
         firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function () {
           firebase.auth().signInWithEmailAndPassword(uid + "@fake.co", document.getElementById("password").value).then(function () {
             document.cookie = "unichat_uid2=" + uid + ";path=/;expires=" + new Date(Date.now() + 157784760000);
-            location.href = "https://legend-of-iphoenix.github.io/UniChatDemo/?u=" + uid;
+            location.href = "https://legend-of-iphoenix.github.io/UniChat-dev-unstable/?u=" + uid;
           }).catch(function (error) {
             // Handle Errors here.
             var errorCode = error.code;
